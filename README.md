@@ -1,330 +1,231 @@
-1) Ridge vs OLS
-We wish to explain each of the major ML models in a **comparative fashion**.
+# OLS vs Ridge Regression (Mathematical Comparison)
 
-To build **deep mathematical intuition**, we derive the **closed-form solution** for both **Ordinary Least Squares (OLS)** and **Ridge Regression** starting from their **cost functions**.
+This document derives the **closed-form solutions** for **Ordinary Least Squares (OLS)** and **Ridge Regression** from their **optimization objectives**.
 
-The key idea is:
+Goal:
 
-> We minimize the cost function by taking derivatives with respect to the weight vector ( w ).
-
----
-
-# 1️⃣ Ordinary Least Squares (OLS)
-
-## Step 1 — Model Definition
-
-Linear regression model:
-
-$$
-y = Xw + \epsilon
-$$
-
-where
-
-* (X \in \mathbb{R}^{m \times p}) → feature matrix
-* (w \in \mathbb{R}^{p \times 1}) → weight vector
-* (y \in \mathbb{R}^{m \times 1}) → target vector
-* (m) → number of samples
-* (p) → number of features
-
-Prediction:
-
-$$
-\hat{y} = Xw
-$$
+```
+Find weight vector w that minimizes prediction error
+```
 
 ---
 
-# Step 2 — OLS Cost Function
+# 1. Linear Regression Model
+
+| Component     | Meaning            |
+| ------------- | ------------------ |
+| `X ∈ R^(m×p)` | Feature matrix     |
+| `w ∈ R^(p×1)` | Weight vector      |
+| `y ∈ R^(m×1)` | Target vector      |
+| `m`           | number of samples  |
+| `p`           | number of features |
+
+Model
+
+```
+y = Xw + ε
+```
+
+Prediction
+
+```
+ŷ = Xw
+```
+
+---
+
+# 2. Ordinary Least Squares (OLS)
+
+## Cost Function
 
 OLS minimizes **Mean Squared Error**
 
-$$
-J(w) = \frac{1}{2}(y - Xw)^T(y - Xw)
-$$
-
-We include the (1/2) factor for **derivative convenience**.
+```
+J(w) = (1/2) (y − Xw)^T (y − Xw)
+```
 
 ---
 
-# Step 3 — Expand the Quadratic Form
+## Expanded Form
 
-$$
+```
 J(w) =
-\frac{1}{2}(y^Ty - y^TXw - w^TX^Ty + w^TX^TXw)
-$$
+1/2 ( y^T y − 2 w^T X^T y + w^T X^T X w )
+```
 
-Since scalars satisfy
+---
 
-$$
-y^TXw = w^TX^Ty
-$$
+## Matrix Derivative Identities
 
-we obtain
+| Identity       | Result |
+| -------------- | ------ |
+| d/dw (w^T A w) | 2Aw    |
+| d/dw (b^T w)   | b      |
 
-$$
+---
+
+## Gradient
+
+```
+∇J(w) = − X^T y + X^T X w
+```
+
+---
+
+## Set Gradient = 0
+
+```
+−X^T y + X^T X w = 0
+```
+
+Rearrange
+
+```
+X^T X w = X^T y
+```
+
+---
+
+## Closed Form Solution
+
+```
+w = (X^T X)^(-1) X^T y
+```
+
+### Normal Equation
+
+```
+w = (X^T X)^(-1) X^T y
+```
+
+---
+
+# 3. Where OLS Fails
+
+OLS requires inversion of
+
+```
+(X^T X)
+```
+
+### Multicollinearity
+
+| Condition      | Result                     |
+| -------------- | -------------------------- |
+| rank(X) < p    | columns linearly dependent |
+| det(X^T X) = 0 | matrix not invertible      |
+
+---
+
+### High Dimensional Case
+
+| Case            | Consequence        |
+| --------------- | ------------------ |
+| `p > m`         | features > samples |
+| rank(X^T X) ≤ m | singular matrix    |
+
+OLS becomes **unstable or undefined**.
+
+---
+
+# 4. Ridge Regression
+
+Ridge adds an **L2 penalty on weights**.
+
+---
+
+## Ridge Cost Function
+
+```
 J(w) =
-\frac{1}{2}(y^Ty - 2w^TX^Ty + w^TX^TXw)
-$$
-
----
-
-# Step 4 — Take Derivative w.r.t (w)
-
-Useful matrix derivative identities:
-
-$$
-\frac{\partial}{\partial w}(w^TAw) = 2Aw
-$$
-
-$$
-\frac{\partial}{\partial w}(b^Tw) = b
-$$
-
-Applying the derivative:
-
-$$
-\nabla_w J =
-
-* X^Ty + X^TXw
-  $$
-
----
-
-# Step 5 — Set Gradient to Zero
-
-To minimize:
-
-$$
-
-* X^Ty + X^TXw = 0
-  $$
-
-Rearranging:
-
-$$
-X^TXw = X^Ty
-$$
-
----
-
-# Step 6 — Solve for (w)
-
-Multiply both sides by ((X^TX)^{-1}):
-
-$$
-w = (X^TX)^{-1}X^Ty
-$$
-
----
-
-# Final OLS Solution
-
-$$
-\boxed{w = (X^TX)^{-1}X^Ty}
-$$
-
-This is called the **Normal Equation**.
-
----
-
-# 🚨 Where OLS Fails
-
-OLS requires the matrix
-
-$$
-(X^TX)^{-1}
-$$
-
-to exist.
-
-Problems arise in the following cases.
-
----
-
-## Multicollinearity
-
-When columns of (X) are linearly dependent:
-
-$$
-rank(X) < p
-$$
-
-then
-
-$$
-\det(X^TX) = 0
-$$
-
-The matrix **cannot be inverted**.
-
----
-
-## High-Dimensional Case
-
-If
-
-$$
-p > m
-$$
-
-then
-
-$$
-rank(X^TX) \le m
-$$
-
-Thus (X^TX) becomes **singular**, and OLS fails.
-
----
-
-# 2️⃣ Ridge Regression
-
-Ridge regression solves the same problem but **penalizes large weights**.
-
----
-
-# Step 1 — Ridge Cost Function
-
-$$
-J(w) =
-\frac{1}{2}(y - Xw)^T(y - Xw)
+1/2 (y − Xw)^T (y − Xw)
 +
-\frac{\lambda}{2}w^Tw
-$$
+(λ/2) w^T w
+```
 
-The second term
+Penalty term
 
-$$
-\lambda w^Tw
-$$
-
-is the **L2 regularization penalty**.
+```
+λ ||w||²
+```
 
 ---
 
-# Step 2 — Expand the Loss
+## Expanded Form
 
-The first term expands exactly like OLS:
-
-$$
-\frac{1}{2}(y^Ty - 2w^TX^Ty + w^TX^TXw)
-$$
-
-Adding the penalty term:
-
-$$
-\frac{\lambda}{2}w^Tw
-$$
-
-Total cost becomes:
-
-$$
+```
 J(w) =
-\frac{1}{2}(y^Ty - 2w^TX^Ty + w^TX^TXw)
+1/2 ( y^T y − 2 w^T X^T y + w^T X^T X w )
 +
-\frac{\lambda}{2}w^Tw
-$$
+(λ/2) w^T w
+```
 
 ---
 
-# Step 3 — Take Derivative
+## Gradient
 
-Derivative of the first term:
-
-$$
-
-* X^Ty + X^TXw
-  $$
-
-Derivative of the penalty:
-
-$$
-\lambda w
-$$
-
-Total gradient:
-
-$$
-\nabla_w J =
-
-* X^Ty + X^TXw + \lambda w
-  $$
+```
+∇J(w) =
+−X^T y + X^T X w + λ w
+```
 
 ---
 
-# Step 4 — Set Gradient to Zero
+## Set Gradient = 0
 
-$$
+```
+−X^T y + X^T X w + λ w = 0
+```
 
-* X^Ty + X^TXw + \lambda w = 0
-  $$
+Rearrange
 
-Rearranging:
+```
+X^T X w + λ w = X^T y
+```
 
-$$
-X^TXw + \lambda w = X^Ty
-$$
+Factor
 
----
-
-# Step 5 — Factor out (w)
-
-$$
-(X^TX + \lambda I)w = X^Ty
-$$
+```
+(X^T X + λI) w = X^T y
+```
 
 ---
 
-# Step 6 — Solve for (w)
+## Ridge Closed Form Solution
 
-$$
-w = (X^TX + \lambda I)^{-1}X^Ty
-$$
-
----
-
-# Final Ridge Solution
-
-$$
-\boxed{w = (X^TX + \lambda I)^{-1}X^Ty}
-$$
+```
+w = (X^T X + λI)^(-1) X^T y
+```
 
 ---
 
-# Why Ridge Fixes Instability
+# 5. OLS vs Ridge (Key Difference)
 
-Suppose eigenvalues of (X^TX) are
-
-$$
-\lambda_1, \lambda_2, ..., \lambda_p
-$$
-
-If some eigenvalues are near zero:
-
-$$
-(X^TX)^{-1}
-$$
-
-becomes unstable.
+| Method | Matrix Inverted |
+| ------ | --------------- |
+| OLS    | `(X^T X)`       |
+| Ridge  | `(X^T X + λI)`  |
 
 ---
 
-## Ridge Shifts Eigenvalues
+# 6. Why Ridge Works
 
-Ridge modifies the matrix:
+Let eigenvalues of `X^T X` be
 
-$$
-X^TX + \lambda I
-$$
+```
+λ1, λ2, ... , λp
+```
 
-Eigenvalues become
+Ridge modifies them to
 
-$$
-\lambda_i + \lambda
-$$
+```
+λ1 + λ
+λ2 + λ
+...
+λp + λ
+```
 
-Thus
+Result:
 
 ```
 small eigenvalues → larger
@@ -334,43 +235,29 @@ solution becomes stable
 
 ---
 
-# Key Mathematical Insight
+# 7. Optimization Perspective
 
-| Method | Matrix Being Inverted |
-| ------ | --------------------- |
-| OLS    | (X^TX)                |
-| Ridge  | (X^TX + \lambda I)    |
-
----
-
-# One-Line Intuition
-
-OLS solves
-
-$$
-\min ||y - Xw||^2
-$$
-
-Ridge solves
-
-$$
-\min ||y - Xw||^2 + \lambda ||w||^2
-$$
-
-which **modifies the geometry of the optimization problem** and stabilizes the matrix inversion.
+| Method | Objective  |   |        |   |       |   |   |   |    |
+| ------ | ---------- | - | ------ | - | ----- | - | - | - | -- |
+| OLS    | minimize ` |   | y − Xw |   | ²`    |   |   |   |    |
+| Ridge  | minimize ` |   | y − Xw |   | ² + λ |   | w |   | ²` |
 
 ---
 
-# Important Conceptual Takeaway
+# Key Takeaway
 
 Ridge **does not change the regression model**.
 
-It changes the **optimization landscape** so that:
-
-```
-the matrix to be inverted is always well-conditioned
-```
+It modifies the **optimization landscape** so the matrix being inverted is **well-conditioned**, preventing instability and overfitting.
 
 ---
 
-If you'd like, I can also show you the **best way to structure these notes in a GitHub ML-from-scratch repo** so it looks like a **research-style reference (very impressive to recruiters)**.
+✅ **Best for GitHub READMEs because**
+
+* No LaTeX rendering dependency
+* Works in **GitHub, GitLab, VSCode preview**
+* Cleaner for **recruiter reading**
+
+---
+
+If you want, I can also show a **much more impressive structure for an ML-from-scratch repo README (the way top GitHub ML repos do it)** that makes this look like a **mini research handbook**.
