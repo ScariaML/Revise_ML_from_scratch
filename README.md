@@ -1,36 +1,35 @@
-# OLS vs Ridge Regression (Mathematical Comparison)
+# OLS vs Ridge Regression (Matrix Derivation)
 
-This document derives the **closed-form solutions** for **Ordinary Least Squares (OLS)** and **Ridge Regression** from their **optimization objectives**.
+This section derives the **closed-form solutions** for:
 
-Goal:
+* **Ordinary Least Squares (OLS)**
+* **Ridge Regression**
 
-```
-Find weight vector w that minimizes prediction error
-```
+by minimizing their **cost functions with respect to the weight vector ( w )**.
 
 ---
 
-# 1. Linear Regression Model
+# 1. Linear Regression Setup
 
-| Component     | Meaning            |
-| ------------- | ------------------ |
-| `X ∈ R^(m×p)` | Feature matrix     |
-| `w ∈ R^(p×1)` | Weight vector      |
-| `y ∈ R^(m×1)` | Target vector      |
-| `m`           | number of samples  |
-| `p`           | number of features |
+| Symbol                          | Meaning            |
+| ------------------------------- | ------------------ |
+| (X \in \mathbb{R}^{m \times p}) | Feature matrix     |
+| (w \in \mathbb{R}^{p \times 1}) | Weight vector      |
+| (y \in \mathbb{R}^{m \times 1}) | Target vector      |
+| (m)                             | number of samples  |
+| (p)                             | number of features |
 
 Model
 
-```
-y = Xw + ε
-```
+$$
+y = Xw + \epsilon
+$$
 
 Prediction
 
-```
-ŷ = Xw
-```
+$$
+\hat{y} = Xw
+$$
 
 ---
 
@@ -40,224 +39,195 @@ Prediction
 
 OLS minimizes **Mean Squared Error**
 
-```
-J(w) = (1/2) (y − Xw)^T (y − Xw)
-```
+$$
+J(w) = \frac{1}{2}(y - Xw)^T(y - Xw)
+$$
 
 ---
 
-## Expanded Form
+## Expand the Quadratic Form
 
-```
-J(w) =
-1/2 ( y^T y − 2 w^T X^T y + w^T X^T X w )
-```
+$$
+J(w)=\frac{1}{2}(y^Ty - y^TXw - w^TX^Ty + w^TX^TXw)
+$$
+
+Since
+
+$$
+y^TXw = w^TX^Ty
+$$
+
+we obtain
+
+$$
+J(w)=\frac{1}{2}(y^Ty - 2w^TX^Ty + w^TX^TXw)
+$$
 
 ---
 
 ## Matrix Derivative Identities
 
-| Identity       | Result |
-| -------------- | ------ |
-| d/dw (w^T A w) | 2Aw    |
-| d/dw (b^T w)   | b      |
+| Expression | Derivative |
+| ---------- | ---------- |
+| ( w^TAw )  | (2Aw)      |
+| ( b^Tw )   | (b)        |
 
 ---
 
 ## Gradient
 
-```
-∇J(w) = − X^T y + X^T X w
-```
+$$
+\nabla_w J =
+
+* X^Ty + X^TXw
+  $$
 
 ---
 
 ## Set Gradient = 0
 
-```
-−X^T y + X^T X w = 0
-```
+$$
 
-Rearrange
+* X^Ty + X^TXw = 0
+  $$
 
-```
-X^T X w = X^T y
-```
-
----
-
-## Closed Form Solution
-
-```
-w = (X^T X)^(-1) X^T y
-```
-
-### Normal Equation
-
-```
-w = (X^T X)^(-1) X^T y
-```
+$$
+X^TXw = X^Ty
+$$
 
 ---
 
-# 3. Where OLS Fails
+## OLS Closed Form
 
-OLS requires inversion of
+$$
+\boxed{w = (X^TX)^{-1}X^Ty}
+$$
 
-```
-(X^T X)
-```
-
-### Multicollinearity
-
-| Condition      | Result                     |
-| -------------- | -------------------------- |
-| rank(X) < p    | columns linearly dependent |
-| det(X^T X) = 0 | matrix not invertible      |
+This is the **Normal Equation**.
 
 ---
 
-### High Dimensional Case
+# 3. When OLS Fails
 
-| Case            | Consequence        |
-| --------------- | ------------------ |
-| `p > m`         | features > samples |
-| rank(X^T X) ≤ m | singular matrix    |
+OLS requires the inverse of
 
-OLS becomes **unstable or undefined**.
+$$
+X^TX
+$$
+
+| Problem               | Mathematical Condition | Result             |
+| --------------------- | ---------------------- | ------------------ |
+| Multicollinearity     | (rank(X) < p)          | (X^TX) singular    |
+| High dimensional data | (p > m)                | (rank(X^TX) \le m) |
+| Near dependence       | very small eigenvalues | unstable inverse   |
 
 ---
 
 # 4. Ridge Regression
 
-Ridge adds an **L2 penalty on weights**.
+Ridge adds **L2 regularization** to penalize large weights.
 
 ---
 
 ## Ridge Cost Function
 
-```
-J(w) =
-1/2 (y − Xw)^T (y − Xw)
-+
-(λ/2) w^T w
-```
-
-Penalty term
-
-```
-λ ||w||²
-```
+$$
+J(w)=\frac{1}{2}(y-Xw)^T(y-Xw)+\frac{\lambda}{2}w^Tw
+$$
 
 ---
 
-## Expanded Form
+## Expand
 
-```
-J(w) =
-1/2 ( y^T y − 2 w^T X^T y + w^T X^T X w )
+$$
+J(w)=
+\frac{1}{2}(y^Ty - 2w^TX^Ty + w^TX^TXw)
 +
-(λ/2) w^T w
-```
+\frac{\lambda}{2}w^Tw
+$$
 
 ---
 
 ## Gradient
 
-```
-∇J(w) =
-−X^T y + X^T X w + λ w
-```
+Derivative components:
+
+| Term           | Gradient          |
+| -------------- | ----------------- |
+| Data loss      | ( -X^Ty + X^TXw ) |
+| Regularization | ( \lambda w )     |
+
+Total gradient
+
+$$
+\nabla_w J =
+
+* X^Ty + X^TXw + \lambda w
+  $$
 
 ---
 
 ## Set Gradient = 0
 
-```
-−X^T y + X^T X w + λ w = 0
-```
+$$
 
-Rearrange
+* X^Ty + X^TXw + \lambda w = 0
+  $$
 
-```
-X^T X w + λ w = X^T y
-```
+$$
+X^TXw + \lambda w = X^Ty
+$$
 
-Factor
+Factor (w)
 
-```
-(X^T X + λI) w = X^T y
-```
-
----
-
-## Ridge Closed Form Solution
-
-```
-w = (X^T X + λI)^(-1) X^T y
-```
+$$
+(X^TX + \lambda I)w = X^Ty
+$$
 
 ---
 
-# 5. OLS vs Ridge (Key Difference)
+## Ridge Closed Form
 
-| Method | Matrix Inverted |
-| ------ | --------------- |
-| OLS    | `(X^T X)`       |
-| Ridge  | `(X^T X + λI)`  |
-
----
-
-# 6. Why Ridge Works
-
-Let eigenvalues of `X^T X` be
-
-```
-λ1, λ2, ... , λp
-```
-
-Ridge modifies them to
-
-```
-λ1 + λ
-λ2 + λ
-...
-λp + λ
-```
-
-Result:
-
-```
-small eigenvalues → larger
-matrix becomes invertible
-solution becomes stable
-```
+$$
+\boxed{w = (X^TX + \lambda I)^{-1}X^Ty}
+$$
 
 ---
 
-# 7. Optimization Perspective
+# 5. Why Ridge Works
 
-| Method | Objective  |   |        |   |       |   |   |   |    |
-| ------ | ---------- | - | ------ | - | ----- | - | - | - | -- |
-| OLS    | minimize ` |   | y − Xw |   | ²`    |   |   |   |    |
-| Ridge  | minimize ` |   | y − Xw |   | ² + λ |   | w |   | ²` |
+Let eigenvalues of (X^TX) be
 
----
+$$
+\lambda_1,\lambda_2,...,\lambda_p
+$$
 
-# Key Takeaway
+OLS inversion uses
 
-Ridge **does not change the regression model**.
+$$
+(X^TX)^{-1}
+$$
 
-It modifies the **optimization landscape** so the matrix being inverted is **well-conditioned**, preventing instability and overfitting.
-
----
-
-✅ **Best for GitHub READMEs because**
-
-* No LaTeX rendering dependency
-* Works in **GitHub, GitLab, VSCode preview**
-* Cleaner for **recruiter reading**
+which becomes unstable when some eigenvalues ≈ 0.
 
 ---
 
-If you want, I can also show a **much more impressive structure for an ML-from-scratch repo README (the way top GitHub ML repos do it)** that makes this look like a **mini research handbook**.
+## Ridge Eigenvalue Shift
+
+Ridge modifies the matrix:
+
+$$
+X^TX + \lambda I
+$$
+
+Eigenvalues become
+
+$$
+\lambda_i + \lambda
+$$
+
+| Effect                     | Result                    |
+| -------------------------- | ------------------------- |
+| Small eigenvalues increase | matrix becomes invertible |
+| Condition number improves  | stable solution           |
+
